@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * An implementation of a motile pacifist photosynthesizer.
@@ -35,10 +36,10 @@ public class Plip extends Creature {
      */
     public Plip(double e) {
         super("plip");
-        r = 0;
-        g = 0;
-        b = 0;
-        energy = e;
+        r = 99;
+        g = 63;
+        b = 76;
+        energy = Math.min(Math.max(e, 0), 2);
     }
 
     /**
@@ -57,7 +58,7 @@ public class Plip extends Creature {
      * that you get this exactly correct.
      */
     public Color color() {
-        g = 63;
+        g = (int) (96*energy + 63);
         return color(r, g, b);
     }
 
@@ -69,12 +70,12 @@ public class Plip extends Creature {
     }
 
     /**
-     * Plips should lose 0.15 units of energy when moving. If you want to
+     * Plips should lose 0.15 units of energy when moving. If you want
      * to avoid the magic number warning, you'll need to make a
      * private static final variable. This is not required for this lab.
      */
     public void move() {
-        // TODO
+        energy = Math.max(0, energy-0.15);
     }
 
 
@@ -82,7 +83,7 @@ public class Plip extends Creature {
      * Plips gain 0.2 energy when staying due to photosynthesis.
      */
     public void stay() {
-        // TODO
+        energy = Math.min(2, energy+0.2);
     }
 
     /**
@@ -91,7 +92,8 @@ public class Plip extends Creature {
      * Plip.
      */
     public Plip replicate() {
-        return this;
+        energy /= 2;
+        return new Plip(energy);
     }
 
     /**
@@ -113,16 +115,35 @@ public class Plip extends Creature {
         boolean anyClorus = false;
         // TODO
         // (Google: Enhanced for-loop over keys of NEIGHBORS?)
-        // for () {...}
+        for (Direction d : neighbors.keySet()) {
+            if (neighbors.get(d).name().equals("empty")) {
+                emptyNeighbors.add(d);
+            }
+            if (neighbors.get(d).name().equals("clorus")) {
+                anyClorus = true;
+            }
+        }
 
-        if (false) { // FIXME
-            // TODO
+        if (emptyNeighbors.isEmpty()) {
+            return new Action(Action.ActionType.STAY);
         }
 
         // Rule 2
         // HINT: randomEntry(emptyNeighbors)
+        if (energy >= 1) {
+            Random generator = new Random();
+            int len = emptyNeighbors.size();
+            int randomindex = generator.nextInt(len);
+            return new Action(Action.ActionType.REPLICATE, emptyNeighbors.toArray(new Direction[len])[randomindex]);
+        }
 
         // Rule 3
+        if (anyClorus && Math.random() < 0.5) {
+            Random generator = new Random();
+            int len = emptyNeighbors.size();
+            int randomindex = generator.nextInt(len);
+            return new Action(Action.ActionType.REPLICATE, emptyNeighbors.toArray(new Direction[len])[randomindex]);
+        }
 
         // Rule 4
         return new Action(Action.ActionType.STAY);
