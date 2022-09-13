@@ -90,7 +90,22 @@ public class MyTrieSet implements TrieSet61B{
 
     @Override
     public String longestPrefixOf(String prefix) {
-        throw new UnsupportedOperationException();
+        if (prefix == null || prefix.length() < 1) {
+            return "";
+        }
+
+        Node node = root;
+        String res = "";
+        for (int i = 0; i < prefix.length(); i++) {
+            char c = prefix.charAt(i);
+            if (node.next[(int) c] == null) {
+                return res;
+            } else {
+                res += c;
+                node = node.next[(int) c];
+            }
+        }
+        return res;
     }
 
 }

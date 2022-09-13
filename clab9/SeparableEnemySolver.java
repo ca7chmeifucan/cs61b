@@ -23,8 +23,43 @@ public class SeparableEnemySolver {
      * Returns true if input is separable, false otherwise.
      */
     public boolean isSeparable() {
-        // TODO: Fix me
-        return false;
+        Set<String> label_set = g.labels();
+        if (label_set.size() == 0) { return true; }
+        HashMap<String, Integer> color = new HashMap<>();
+
+        // go through the nodes, and children under each node. Store the color information
+        for (String label : label_set) {
+            int parent_color = color.getOrDefault(label, 0);
+            int children_color = 0;
+            for (String child : g.neighbors(label)) {
+                if (color.containsKey(child)) {
+                    if (children_color == 0) {
+                        children_color = color.get(child);
+                    } else {
+                        if (children_color != color.get(child)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            // check if the color is conflicting between parent and children
+            if (parent_color != 0 && parent_color == children_color) {
+                return false;
+            } else if (parent_color == 0 && children_color == 0) {
+                parent_color = 1;
+                children_color = -1;
+            } else {
+                parent_color = - children_color;
+            }
+
+            // store color information
+            color.put(label, parent_color);
+            for (String child : g.neighbors(label)) {
+                color.put(child, children_color);
+            }
+        }
+        return true;
     }
 
 
