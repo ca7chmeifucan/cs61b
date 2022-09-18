@@ -1,6 +1,7 @@
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +50,46 @@ public class BnBSolverTests {
         }
         BnBSolver solver = new BnBSolver(bears, beds);
         assertTrue(perfectMatch(solver.solvedBears(), solver.solvedBeds()));
+    }
+
+    @Test
+    public void orderBears() {
+        int[] bearSizes = {10, 50, 40, 30, 90, 20, 80, 70};
+        int[] bedSizes = {70, 90, 20, 40, 50, 10, 30, 80};
+        ArrayList<Bear> bears = new ArrayList<>();
+        ArrayList<Bed> beds = new ArrayList<>();
+        for (int i = 0; i < bearSizes.length; i++) {
+            bears.add(new Bear(bearSizes[i]));
+            beds.add(new Bed(bedSizes[i]));
+        }
+
+        Arrays.sort(bearSizes);
+        ArrayList<Bear> correct_bears = new ArrayList<>();
+        for (int i = 0; i < bearSizes.length; i++) {
+            correct_bears.add(new Bear(bearSizes[i]));
+        }
+        BnBSolver solver = new BnBSolver(bears, beds);
+        System.out.println(solver.solvedBears().toString());
+    }
+
+    @Test
+    public void orderBeds() {
+        int[] bearSizes = {10, 50, 40, 30, 90, 20, 80, 70};
+        int[] bedSizes = {70, 90, 20, 40, 50, 10, 30, 80};
+        ArrayList<Bear> bears = new ArrayList<>();
+        ArrayList<Bed> beds = new ArrayList<>();
+        for (int i = 0; i < bedSizes.length; i++) {
+            bears.add(new Bear(bearSizes[i]));
+            beds.add(new Bed(bedSizes[i]));
+        }
+
+        Arrays.sort(bedSizes);
+        ArrayList<Bear> correct_beds = new ArrayList<>();
+        for (int i = 0; i < bedSizes.length; i++) {
+            correct_beds.add(new Bear(bedSizes[i]));
+        }
+        BnBSolver solver = new BnBSolver(bears, beds);
+        System.out.println(solver.solvedBeds().toString());
     }
 
     @Test
