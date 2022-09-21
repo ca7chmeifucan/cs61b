@@ -37,7 +37,6 @@ public class AStarSolver<Vertex> implements ShortestPathsSolver<Vertex> {
         pq.add(start, input.estimatedDistanceToGoal(start, end));
         long starttime = System.nanoTime();
         while (pq.size() > 0) {
-            dequeue_cnt += 1;
             Vertex curr_vertex = pq.removeSmallest();
 
             //time check
@@ -52,7 +51,7 @@ public class AStarSolver<Vertex> implements ShortestPathsSolver<Vertex> {
             if (curr_vertex.equals(end)) {
                 break;
             }
-
+            dequeue_cnt += 1;
             //relax all edges outgoing from curr_vertex
             relax(input, pq, curr_vertex);
         }
@@ -74,8 +73,8 @@ public class AStarSolver<Vertex> implements ShortestPathsSolver<Vertex> {
             double distance_end = distance_start + weight;
             double h_distance = input.estimatedDistanceToGoal(neighbor, this.end);
             if (distance_end < best_distance.getOrDefault(neighbor, Double.MAX_VALUE)) {
-                if (pq.contains(neighbor)) {
-                    pq.add(neighbor, distance_end+h_distance);
+                if (!pq.contains(neighbor)) {
+                    pq.add(neighbor, distance_end + h_distance);
                 } else {
                     pq.changePriority(neighbor, distance_end + h_distance);
                 }
