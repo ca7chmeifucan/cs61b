@@ -84,11 +84,96 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
      */
     @Override
     public Map<String, Object> processRequest(Map<String, Double> requestParams, Response response) {
-        //System.out.println("yo, wanna know the parameters given by the web browser? They are:");
-        //System.out.println(requestParams);
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
-                + "your browser.");
+        double input_londpp = (requestParams.get("lrlon") - requestParams.get("ullon"))/requestParams.get("w");
+        double input_latdpp = (requestParams.get("ullat") - requestParams.get("lrlat"))/requestParams.get("h");
+        //find depth
+        int depth = 0;
+        double curr_londpp = (Constants.ROOT_LRLON - Constants.ROOT_ULLON) / (Constants.TILE_SIZE);
+        double curr_latdpp = (Constants.ROOT_ULLAT - Constants.ROOT_LRLAT) / (Constants.TILE_SIZE);
+        while (curr_londpp > input_londpp || curr_latdpp > input_latdpp) {
+            if (depth >= 7) {
+                break;
+            }
+            depth += 1;
+            curr_londpp /= 2;
+            curr_latdpp /= 2;
+        }
+
+        double tlon = (Constants.ROOT_LRLON - Constants.ROOT_ULLON) / Math.pow(2, depth), slon = Constants.ROOT_ULLON;
+        double tlat = (Constants.ROOT_ULLAT - Constants.ROOT_LRLAT) / Math.pow(2, depth), slat = Constants.ROOT_ULLAT;
+        int s_x = -1, e_x = -1, s_y = -1, e_y = -1;
+        double raster_ul_lon = Constants.ROOT_ULLON, raster_lr_lon = Constants.ROOT_LRLON, raster_ul_lat = Constants.ROOT_ULLAT, raster_lr_lat = Constants.ROOT_LRLAT;
+        //iterate longitude
+        for (int i = 0; i < Math.pow(2, depth); i++) {
+            if (slon <= requestParams.get("ullon") && slon+tlon >= requestParams.get("ullon")) {
+                s_x = i;
+                raster_ul_lon = slon;
+            }
+            if (slon <= requestParams.get("lrlon") && slon+tlon >= requestParams.get("lrlon")) {
+                e_x = i;
+                raster_lr_lon = slon+tlon;
+            }
+            slon += tlon;
+        }
+        if (s_x == -1 && e_x == -1) {
+            return no_coverage_result();
+        } else if (s_x == -1) {
+            s_x = 0;
+            raster_ul_lon = Constants.ROOT_ULLON;
+        } else if (e_x == -1) {
+            e_x = (int) Math.pow(2, depth) - 1;
+            raster_lr_lon = Constants.ROOT_LRLON;
+        }
+
+        //iterate latitude
+        for (int i = 0; i < Math.pow(2, depth); i++) {
+            if (slat >= requestParams.get("ullat") && slat-tlat <= requestParams.get("ullat")) {
+                s_y = i;
+                raster_ul_lat = slat;
+            }
+            if (slat >= requestParams.get("lrlat") && slat-tlat <= requestParams.get("lrlat")) {
+                e_y = i;
+                raster_lr_lat = slat-tlat;
+            }
+            slat -= tlat;
+        }
+        if (s_y == -1 && e_y == -1) {
+            return no_coverage_result();
+        } else if (s_y == -1) {
+            s_y = 0;
+            raster_ul_lat = Constants.ROOT_ULLAT;
+        } else if (e_y == -1) {
+            e_y = (int) Math.pow(2, depth) - 1;
+            raster_lr_lat = Constants.ROOT_LRLAT;
+        }
+
+        //write into render_grid
+        String[][] render_grid = new String[e_y-s_y+1][e_x-s_x+1];
+        for (int y = s_y, j = 0; y < e_y+1; y++, j++) {
+            for (int x = s_x, i = 0; x < e_x+1; x++, i++) {
+                render_grid[j][i] = String.format("d%d_x%d_y%d.png",depth, x, y);
+            }
+        }
+        results.put("raster_ul_lon", raster_ul_lon);
+        results.put("raster_lr_lon", raster_lr_lon);
+        results.put("raster_ul_lat", raster_ul_lat);
+        results.put("raster_lr_lat", raster_lr_lat);
+        results.put("depth", depth);
+        results.put("render_grid", render_grid);
+        results.put("query_success", true);
+        return results;
+    }
+
+    public Map<String, Object> no_coverage_result() {
+        Map<String, Object> results = new HashMap<>();
+        results.put("raster_ul_lon", Constants.ROOT_ULLON);
+        results.put("raster_lr_lon", Constants.ROOT_LRLON);
+        results.put("raster_ul_lat", Constants.ROOT_ULLAT);
+        results.put("raster_lr_lat", Constants.ROOT_LRLAT);
+        results.put("depth", 0);
+        results.put("render_grid", new String[][] {{"d0_x0_y0.png"}});
+        results.put("query_success", false);
         return results;
     }
 
